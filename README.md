@@ -1,0 +1,2 @@
+# stardust
+Urbit stardust project
