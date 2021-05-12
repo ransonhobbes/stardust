@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "StarToken.sol";
 import "./IStarToken.sol";
 
-contract Treasury {
+contract Treasury is Context {
     // MODEL
 
     //  assets: stars currently held in this pool
