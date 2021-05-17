@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "azimuth-solidity/contracts/Azimuth.sol";
-import "azimuth-solidity/contracts/Ecliptic.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "StarToken.sol";
-import "./IStarToken.sol";
+import "./interfaces/IAzimuth.sol";
+import "./interfaces/IEcliptic.sol";
+import "./StarToken.sol";
 
 contract Treasury is Context, Ownable() {
     // MODEL
@@ -17,16 +16,12 @@ contract Treasury is Context, Ownable() {
 
     //  azimuth: points state data store
     //
-    Azimuth public azimuth;
+    IAzimuth public azimuth;
 
     // deploy a new token contract with no balance and no operators
-    StarToken public startoken = new StarToken(0, []);
+    StarToken public startoken = new StarToken(0, new address[](0));
 
     uint256 constant public oneStar = 65536e18;
-
-    //  assets: stars currently held in this pool
-    //
-    uint16[] public assets;
 
     //  assetIndexes: per star, (index + 1) in :assets
     //
@@ -54,8 +49,7 @@ contract Treasury is Context, Ownable() {
 
     //  constructor(): configure the points data store and token contract address
     //
-    constructor(Azimuth _azimuth)
-        public
+    constructor(IAzimuth _azimuth)
     {
         azimuth = _azimuth;
     }
@@ -68,7 +62,7 @@ contract Treasury is Context, Ownable() {
     function getAllAssets()
         view
         external
-        returns (uint16[] allAssets)
+        returns (uint16[] memory allAssets)
     {
         return assets;
     }
@@ -102,29 +96,29 @@ contract Treasury is Context, Ownable() {
 //        azimuth.hasBeenLinked(prefix) );
 //    }
 
-    function deposit(uint32 _star)
+    function deposit(uint16 _star)
         public
     {
 //        require(mintable(_star));
-        Ecliptic ecliptic = Ecliptic(azimuth.owner());
+        IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1)
         if (
             azimuth.isOwner(_star, msg.sender) &&
             !azimuth.hasBeenLinked(_star) &&
-            azimuth.isTransferProxy(_star, this)
+            azimuth.isTransferProxy(_star, address(this))
         ) {
             // transfer ownership of the _star to :this contract
-            ecliptic.transferPoint(_star, this, true);
+            ecliptic.transferPoint(_star, address(this), true);
         }
         // case (2)
         else if (
             azimuth.isOwner(azimuth.getPrefix(_star), msg.sender) &&
             !azimuth.isActive(_star) &&
-            azimuth.isSpawnProxy(azimuth.getPrefix(_star), this)
+            azimuth.isSpawnProxy(azimuth.getPrefix(_star), address(this))
         ) {
             // spawn the _star directly to :this contract
-            ecliptic.spawn(_star, this);
+            ecliptic.spawn(_star, address(this));
         }
         else {
             revert();
@@ -143,7 +137,7 @@ contract Treasury is Context, Ownable() {
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
     }
 
-    function redeem() public {
+    function redeem(uint32 _star) public {
         emit Redeem(azimuth.getPrefix(_star), _star, _msgSender());
     }
 }

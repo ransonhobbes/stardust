@@ -1,6 +1,13 @@
 const { expect } = require("chai");
+// const { accounts } = require('@openzeppelin/test-environment');
+const { singletons } = require("@openzeppelin/test-helpers");
 
-describe("StarToken", function() {
+contract("StarToken", function(accounts) {
+  beforeEach(async function () {
+    const funder = accounts[0]; // account that will be used to fund the deployment
+    this.erc1820 = await singletons.ERC1820Registry(funder);
+  });
+
   it("Should contain zero balance once deployed", async function() {
     const StarToken = await ethers.getContractFactory("StarToken");
     const token = await StarToken.deploy(0, []);

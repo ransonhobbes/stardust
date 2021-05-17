@@ -10,14 +10,13 @@ contract StarToken is Context, Ownable, ERC777 {
         uint256 initialSupply,
         address[] memory defaultOperators
     )
-        public
         Ownable()
         ERC777("StarToken", "STAR", defaultOperators)
     {
-        _mint(_msgSender(), _msgSender(), initialSupply, "", "");
+        _mint(_msgSender(), initialSupply, "", "");
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+        _mint(to, amount, "", "");
     }
 }
