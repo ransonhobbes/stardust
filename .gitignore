@@ -103,8 +103,8 @@ dist
 # TernJS port file
 .tern-port
 
-#Hardhat files
-artifacts
-
-.idea
+# Hardhat/truffle files
+.idea/
+artifacts/
+build/
 cache/
