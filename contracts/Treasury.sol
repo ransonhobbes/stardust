@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 
 import "azimuth-solidity/contracts/Azimuth.sol";
 import "azimuth-solidity/contracts/Ecliptic.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "StarToken.sol";
 import "./IStarToken.sol";
 
-contract Treasury is Context {
+contract Treasury is Context, Ownable() {
     // MODEL
 
     //  assets: stars currently held in this pool
@@ -17,7 +18,10 @@ contract Treasury is Context {
     //  azimuth: points state data store
     //
     Azimuth public azimuth;
-    StarToken public startoken;
+
+    // deploy a new token contract with no balance and no operators
+    StarToken public startoken = new StarToken(0, []);
+
     uint256 constant public oneStar = 65536e18;
 
     //  assets: stars currently held in this pool
@@ -48,13 +52,12 @@ contract Treasury is Context {
 
     // IMPLEMENTATION
 
-    //  constructor(): configure the points data store
+    //  constructor(): configure the points data store and token contract address
     //
-    constructor(Azimuth _azimuth, StarToken _startoken)
+    constructor(Azimuth _azimuth)
         public
     {
         azimuth = _azimuth;
-        startoken = _startoken;
     }
 
     //  getAllAssets(): return array of assets held by this contract
@@ -135,7 +138,7 @@ contract Treasury is Context {
         //  mint star tokens and grant them to the :msg.sender
         //
         StarToken token = StarToken(startoken);
-        require(token.owner() == address(this), "Wrong owner"); // necessary?
+//        require(token.owner() == address(this), "Wrong owner"); // necessary?
         token.mint(_msgSender(), oneStar);
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
     }

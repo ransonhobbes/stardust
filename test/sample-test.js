@@ -1,14 +1,17 @@
 const { expect } = require("chai");
 
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
+describe("StarToken", function() {
+  it("Should contain zero balance once deployed", async function() {
+    const StarToken = await ethers.getContractFactory("StarToken");
+    const token = await StarToken.deploy(0, []);
+    const accounts = await ethers.getSigners();
+    const someAddress = accounts[0].address;
     
-    await greeter.deployed();
-    expect(await greeter.greet()).to.equal("Hello, world!");
+    await token.deployed();
+    expect(await token.totalSupply()).to.equal(0);
 
-    await greeter.setGreeting("Hola, mundo!");
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    await token.mint(someAddress, 100);
+    expect(await token.totalSupply()).to.equal(100);
+    expect(await token.balanceOf(someAddress)).to.equal(100);
   });
 });

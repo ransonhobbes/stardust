@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
-    "azimuth-solidity": "^1.2.2"
+    "azimuth-solidity": "github:urbit/azimuth"
   }
 }
