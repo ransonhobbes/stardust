@@ -1,4 +1,4 @@
-const {expect} = require("chai");
+// const {expect} = require("chai");
 require("chai").should();
 const {accounts, contract} = require('@openzeppelin/test-environment');
 const {singletons} = require("@openzeppelin/test-helpers");
@@ -11,7 +11,7 @@ const defaultOperators = [];
 describe("StarToken", function () {
     const [registryFunder, creator, operator] = accounts;
 
-    beforeEach(async function () {
+    before(async function () {
         await singletons.ERC1820Registry(registryFunder);
         // this.erc1820 = await singletons.ERC1820Registry(funder);
         // const StarToken = await ethers.getContractFactory("StarToken");
@@ -46,5 +46,15 @@ describe("StarToken", function () {
         await this.token.mint(operator, 100, {from: creator});
         (await this.token.totalSupply()).should.be.bignumber.equal("200");
         (await this.token.balanceOf(operator)).should.be.bignumber.equal("100");
+    });
+
+    it('allows operator burn', async function () {
+        const creatorBalance = await this.token.balanceOf(creator);
+        const data = web3.utils.sha3('StarToken');
+        const operatorData = web3.utils.sha3('Simple777OperatorData');
+
+        await this.token.authorizeOperator(operator, { from: creator });
+        await this.token.operatorBurn(creator, creatorBalance, data, operatorData, { from: operator });
+        (await this.token.balanceOf(creator)).should.be.bignumber.equal("0");
     });
 });
