@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
+    "azimuth-solidity": "^1.2.2",
     "openzeppelin-solidity": "^1.12.0"
   }
 }

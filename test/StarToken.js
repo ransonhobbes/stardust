@@ -1,4 +1,3 @@
-// const {expect} = require("chai");
 require("chai").should();
 const {accounts, contract} = require('@openzeppelin/test-environment');
 const {singletons} = require("@openzeppelin/test-helpers");
@@ -13,10 +12,6 @@ describe("StarToken", function () {
 
     before(async function () {
         await singletons.ERC1820Registry(registryFunder);
-        // this.erc1820 = await singletons.ERC1820Registry(funder);
-        // const StarToken = await ethers.getContractFactory("StarToken");
-        // this.token = await StarToken.deploy(0, []);
-        // await this.token.deployed();
         this.token = await StarToken.new(initialSupply, defaultOperators, {from: creator});
     });
 
