@@ -1,8 +1,8 @@
+const {expect} = require("chai");
 const {ethers} = require("hardhat");
 const {singletons} = require("@openzeppelin/test-helpers");
 
 describe("Treasury", function() {
-
     before(async function () {
         const [registryFunder, creator, operator] = await ethers.getSigners();
         const Azimuth = await ethers.getContractFactory("AzimuthWrapper", creator);
@@ -13,6 +13,6 @@ describe("Treasury", function() {
     });
 
     it("has no assets", async function () {
-        assert.equal(await this.treasury.getAssetCount(), 0);
+        expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 });
