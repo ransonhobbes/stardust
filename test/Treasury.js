@@ -2,7 +2,7 @@ require("chai").should();
 const {accounts, contract} = require('@openzeppelin/test-environment');
 const {singletons} = require("@openzeppelin/test-helpers");
 
-const Azimuth = contract.fromArtifact("AzimuthImporter");
+const Azimuth = contract.fromArtifact("AzimuthWrapper");
 const Treasury = contract.fromArtifact("Treasury");
 
 describe("Treasury", function () {
