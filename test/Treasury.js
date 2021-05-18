@@ -2,7 +2,7 @@ require("chai").should();
 const {accounts, contract} = require('@openzeppelin/test-environment');
 const {singletons} = require("@openzeppelin/test-helpers");
 
-// const Azimuth = contract.fromArtifact("AzimuthImporter");
+// for some reason, we can't deploy it here or we get an out of gas error, but it works in migration
 const Azimuth = artifacts.require("AzimuthImporter.sol");
 const Treasury = contract.fromArtifact("Treasury");
 
