@@ -1,20 +1,18 @@
-require("chai").should();
-const {accounts, contract} = require('@openzeppelin/test-environment');
+const {ethers} = require("hardhat");
 const {singletons} = require("@openzeppelin/test-helpers");
 
-const Azimuth = contract.fromArtifact("AzimuthWrapper");
-const Treasury = contract.fromArtifact("Treasury");
-
-describe("Treasury", function () {
-    const [registryFunder, creator, operator] = accounts;
+describe("Treasury", function() {
 
     before(async function () {
-        await singletons.ERC1820Registry(registryFunder);
-        const azimuth = await Azimuth.new({from: creator});
-        this.treasury = await Treasury.new(azimuth.address, {from: creator});
+        const [registryFunder, creator, operator] = await ethers.getSigners();
+        const Azimuth = await ethers.getContractFactory("AzimuthWrapper", creator);
+        const Treasury = await ethers.getContractFactory("Treasury", creator);
+        await singletons.ERC1820Registry(registryFunder.address);
+        const azimuth = await Azimuth.deploy();
+        this.treasury = await Treasury.deploy(azimuth.address);
     });
 
     it("has no assets", async function () {
-        (await this.treasury.getAssetCount()).should.be.bignumber.equal("0");
+        assert.equal(await this.treasury.getAssetCount(), 0);
     });
 });

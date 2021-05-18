@@ -1,33 +1,30 @@
-require("chai").should();
-const {accounts, contract} = require('@openzeppelin/test-environment');
+const {ethers} = require("hardhat");
 const {singletons} = require("@openzeppelin/test-helpers");
 
-const StarToken = contract.fromArtifact("StarToken");
-
-const initialSupply = 100;
-const defaultOperators = [];
-
-describe("StarToken", function () {
-    const [registryFunder, creator, operator] = accounts;
-
+describe("StarToken", function() {
     before(async function () {
-        await singletons.ERC1820Registry(registryFunder);
-        this.token = await StarToken.new(initialSupply, defaultOperators, {from: creator});
+        const initialSupply = 100;
+        const defaultOperators = [];
+        const [registryFunder, creator, operator] = await ethers.getSigners();
+        const StarToken = await ethers.getContractFactory("StarToken", creator);
+        await singletons.ERC1820Registry(registryFunder.address);
+        this.token = await StarToken.deploy(initialSupply, defaultOperators);
+        this.creator = creator;
+        this.operator = operator;
     });
 
     it("has a name", async function () {
-        (await this.token.name()).should.equal("StarToken");
+        assert.equal(await this.token.name(), "StarToken");
     });
 
     it("has a symbol", async function () {
-        (await this.token.symbol()).should.equal("STAR");
+        assert.equal(await this.token.symbol(), "STAR");
     });
 
     it("assigns the initial total supply to the creator", async function () {
         const totalSupply = await this.token.totalSupply();
-        const creatorBalance = await this.token.balanceOf(creator);
-
-        creatorBalance.should.be.bignumber.equal(totalSupply);
+        const creatorBalance = await this.token.balanceOf(this.creator.address);
+        assert.equal(creatorBalance.toString(), totalSupply.toString());
 
         // await expectEvent.inConstruction(this.token, 'Transfer', {
         //   from: ZERO_ADDRESS,
@@ -37,19 +34,20 @@ describe("StarToken", function () {
     });
 
     it("Should contain zero balance once deployed", async function () {
-        (await this.token.totalSupply()).should.be.bignumber.equal("100");
-        await this.token.mint(operator, 100, {from: creator});
-        (await this.token.totalSupply()).should.be.bignumber.equal("200");
-        (await this.token.balanceOf(operator)).should.be.bignumber.equal("100");
+        assert.equal(await this.token.totalSupply(), 100);
+        await this.token.mint(this.operator.address, 100);
+        assert.equal(await this.token.totalSupply(), 200);
+        assert.equal(await this.token.balanceOf(this.operator.address), 100);
     });
 
     it('allows operator burn', async function () {
-        const creatorBalance = await this.token.balanceOf(creator);
+        const creatorBalance = await this.token.balanceOf(this.creator.address);
         const data = web3.utils.sha3('StarToken');
         const operatorData = web3.utils.sha3('Simple777OperatorData');
 
-        await this.token.authorizeOperator(operator, { from: creator });
-        await this.token.operatorBurn(creator, creatorBalance, data, operatorData, { from: operator });
-        (await this.token.balanceOf(creator)).should.be.bignumber.equal("0");
+        await this.token.authorizeOperator(this.operator.address);
+        await this.token.attach(this.operator.address).operatorBurn(this.creator.address, creatorBalance, data, operatorData);
+        const creatorBalanceNew = await this.token.balanceOf(this.creator.address);
+        assert.equal(creatorBalanceNew.toString(), "0");
     });
 });
