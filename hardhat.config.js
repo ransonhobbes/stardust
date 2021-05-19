@@ -11,7 +11,7 @@ task("accounts", "Prints the list of accounts", async () => {
     }
 });
 
-task("accountsFromWeb3", "Prints accounts", async (_, { web3 }) => {
+task("accountsFromWeb3", "Prints accounts", async (_, {web3}) => {
     console.log(await web3.eth.getAccounts());
 });
 
@@ -23,5 +23,28 @@ task("accountsFromWeb3", "Prints accounts", async (_, { web3 }) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+    solidity: {
+        compilers: [
+            // for legacy code (azimuth)
+            {
+                version: "0.4.24",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 1000
+                    }
+                }
+            },
+            // for everything else
+            {
+                version: "0.8.4",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 1000
+                    }
+                }
+            },
+        ]
+    },
 };
