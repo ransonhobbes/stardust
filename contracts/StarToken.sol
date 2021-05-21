@@ -19,4 +19,8 @@ contract StarToken is Context, Ownable, ERC777 {
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount, "", "");
     }
+
+    function ownerBurn(address from, uint256 amount) public onlyOwner {
+        _burn(from, amount, "", "");
+    }
 }

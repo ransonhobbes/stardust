@@ -100,6 +100,7 @@ contract Treasury is Context, Ownable() {
         public
     {
 //        require(mintable(_star));
+        require(azimuth.getPointSize(_star) == IAzimuth.Size.Star);
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1)
@@ -131,13 +132,31 @@ contract Treasury is Context, Ownable() {
 
         //  mint star tokens and grant them to the :msg.sender
         //
-        StarToken token = StarToken(startoken);
-//        require(token.owner() == address(this), "Wrong owner"); // necessary?
-        token.mint(_msgSender(), oneStar);
+        startoken.mint(_msgSender(), oneStar);
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
     }
 
-    function redeem(uint32 _star) public {
+    function redeem() public {
+        // must have sufficient balance
+        require(startoken.balanceOf(_msgSender()) >= oneStar);
+
+        // there must be at least one star in the asset list
+        require(assets.length>0);
+
+        // remove the star to be redeemed
+        uint16 _star = assets[assets.length-1];
+        assets.pop();
+
+        // check its ownership
+        require(azimuth.isOwner(_star, address(this)));
+
+        // burn the tokens
+        startoken.ownerBurn(_msgSender(), oneStar);
+
+        // transfer ownership
+        IEcliptic ecliptic = IEcliptic(azimuth.owner());
+        ecliptic.transferPoint(_star, _msgSender(), true);
+
         emit Redeem(azimuth.getPrefix(_star), _star, _msgSender());
     }
 }
