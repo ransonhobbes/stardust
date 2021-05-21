@@ -21,21 +21,21 @@ describe("StarToken", function() {
         this.operator = operator;
     });
 
-    it("has a name", async function () {
+    it("has a name", async function() {
         expect(await this.token.name()).to.equal("StarToken");
     });
 
-    it("has a symbol", async function () {
+    it("has a symbol", async function() {
         expect(await this.token.symbol()).to.equal("STAR");
     });
 
-    it("assigns the initial total supply to the creator", async function () {
+    it("assigns the initial total supply to the creator", async function() {
         const totalSupply = await this.token.totalSupply();
         const creatorBalance = await this.token.balanceOf(this.creator.address);
-        await expect(creatorBalance).to.equal(totalSupply);
+        expect(creatorBalance).to.equal(totalSupply);
     });
 
-    it("should contain zero balance once deployed", async function () {
+    it("should contain zero balance once deployed", async function() {
         expect(await this.token.totalSupply()).to.equal(100);
         const response = await this.token.mint(this.operator.address, 100);
         const receipt = await response.wait();
@@ -50,7 +50,7 @@ describe("StarToken", function() {
         expect(await this.token.balanceOf(this.operator.address)).to.equal(100);
     });
 
-    it("allows operator burn", async function () {
+    it("allows operator burn", async function() {
         const creatorBalance = await this.token.balanceOf(this.creator.address);
         const data = web3.utils.sha3('StarToken');
         const operatorData = web3.utils.sha3('Simple777OperatorData');

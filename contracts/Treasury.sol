@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IAzimuth.sol";
-import "./interfaces/IEcliptic.sol";
+import "./interface/IAzimuth.sol";
+import "./interface/IEcliptic.sol";
 import "./StarToken.sol";
 
 contract Treasury is Context, Ownable() {
@@ -104,7 +104,7 @@ contract Treasury is Context, Ownable() {
 
         // case (1)
         if (
-            azimuth.isOwner(_star, msg.sender) &&
+            azimuth.isOwner(_star, _msgSender()) &&
             !azimuth.hasBeenLinked(_star) &&
             azimuth.isTransferProxy(_star, address(this))
         ) {
@@ -113,7 +113,7 @@ contract Treasury is Context, Ownable() {
         }
         // case (2)
         else if (
-            azimuth.isOwner(azimuth.getPrefix(_star), msg.sender) &&
+            azimuth.isOwner(azimuth.getPrefix(_star), _msgSender()) &&
             !azimuth.isActive(_star) &&
             azimuth.isSpawnProxy(azimuth.getPrefix(_star), address(this))
         ) {

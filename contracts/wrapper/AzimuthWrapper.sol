@@ -18,5 +18,6 @@ pragma solidity ^0.4.24;
 import "azimuth-solidity/contracts/Azimuth.sol";
 
 contract AzimuthWrapper is Azimuth {
-    constructor() Azimuth() {}
+    constructor()
+    public Azimuth() {}
 }
