@@ -23,14 +23,6 @@ contract Treasury is Context, Ownable() {
 
     uint256 constant public oneStar = 1e18;
 
-    //  assetIndexes: per star, (index + 1) in :assets
-    //
-    //    We delete assets by moving the last entry in the array to the
-    //    newly emptied slot, which is (n - 1) where n is the value of
-    //    assetIndexes[star].
-    //
-    mapping(uint16 => uint256) public assetIndexes;
-
     // EVENTS
 
     event Deposit(
@@ -128,7 +120,6 @@ contract Treasury is Context, Ownable() {
         //  update state to include the deposited star
         //
         assets.push(_star);
-        assetIndexes[_star] = assets.length;
 
         //  mint star tokens and grant them to the :msg.sender
         //
