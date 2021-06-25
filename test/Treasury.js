@@ -61,11 +61,13 @@ describe("Treasury", function() {
         const prefix = await this.azimuth.getPrefix(PointStarZero);
         expect((await this.azimuth.getPointSize(prefix)) + 1).to.equal(await this.azimuth.getPointSize(PointStarZero));
         expect(await this.azimuth.hasBeenLinked(prefix)).to.be.true;
+        expect(await this.azimuth.getSpawnCount(prefix)).to.equal(0);
         expect(await this.azimuth.canSpawnAs(prefix, this.creator.address)).to.be.true;
         response = await this.ecliptic.spawn(PointStarZero, this.creator.address);
         await expect(response).to.emit(this.ecliptic, "Transfer").withArgs(
             constants.ZERO_ADDRESS, this.creator.address, PointStarZero
         );
+        expect(await this.azimuth.getSpawnCount(prefix)).to.equal(1);
         response = await this.ecliptic.setSpawnProxy(PointGalaxyZero, this.treasury.address);
         await expect(response).to.emit(this.azimuth, "ChangedSpawnProxy").withArgs(
             PointGalaxyZero, this.treasury.address
@@ -83,6 +85,7 @@ describe("Treasury", function() {
         // case (1): star already spawned, transfer ownership
         expect(await this.azimuth.isOwner(PointStarZero, this.creator.address)).to.be.true;
         expect(await this.azimuth.hasBeenLinked(PointStarZero)).to.be.false;
+        expect(await this.azimuth.getSpawnCount(PointStarZero)).to.equal(0);
         expect(await this.azimuth.isTransferProxy(PointStarZero, this.treasury.address)).to.be.true;
 
         // case (2): star not yet spawned, spawn directly into treasury
