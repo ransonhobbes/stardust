@@ -21,7 +21,7 @@ contract Treasury is Context, Ownable() {
     // deploy a new token contract with no balance and no operators
     StarToken public startoken = new StarToken(0, new address[](0));
 
-    uint256 constant public oneStar = 65536e18;
+    uint256 constant public oneStar = 1e18;
 
     // EVENTS
 
