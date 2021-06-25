@@ -2,12 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IAzimuth.sol";
 import "./interface/IEcliptic.sol";
 import "./StarToken.sol";
 
-contract Treasury is Context, Ownable() {
+contract Treasury is Context {
     // MODEL
 
     //  assets: stars currently held in this pool
