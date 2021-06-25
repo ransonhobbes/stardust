@@ -6,6 +6,11 @@ import "./interface/IAzimuth.sol";
 import "./interface/IEcliptic.sol";
 import "./StarToken.sol";
 
+//  Treasury: simple automated market maker for StarTokens
+//
+//    This contract implements an extremely simple automated market maker for StarTokens.
+//    It allows owners of Azimuth star points to deposit
+
 contract Treasury is Context {
     // MODEL
 

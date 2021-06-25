@@ -5,6 +5,12 @@ import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
+//  StarToken: ERC777-compatible fungible $STAR token
+//
+//    This contract implements a simple ERC777-compatible fungible token. It's deployed
+//    and owned by the Treasury. The Treasury mints and burns these tokens when it
+//    processes deposits and withdrawals.
+
 contract StarToken is Context, Ownable, ERC777 {
     constructor(
         uint256 initialSupply,
