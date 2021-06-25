@@ -6,6 +6,7 @@ const
     PointGalaxyZero  = 0x0,
     PointStarZero    = 0x00000100, // 256, first star of galaxy zero
     PointStarOne     = 0x00000200, // 512, second star of galaxy zero
+    PointStarTwo     = 0x00000300, // 768, third star of galaxy zero
     PointPlanetZero  = 0x00010100; // 65792, first planet of first star of galaxy zero
 
 describe("Treasury", function() {
@@ -201,7 +202,6 @@ describe("Treasury", function() {
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
 
         // burn one token
-        // res = await this.token.burn(this.creator.address, 1);
         res = await this.token.burn(1, "0x");
         await expect(res).to.emit(this.token, "Burned").withArgs(
             this.creator.address, this.creator.address, 1, "0x", "0x"
@@ -210,5 +210,25 @@ describe("Treasury", function() {
 
         // now redeem should fail
         await expect(this.treasury.redeem()).to.be.reverted;
+    });
+
+    // it's important to prevent this to protect users who don't RTFM
+    it("doesn't allow inbound safe transfer", async function() {
+        expect(await this.azimuth.isOwner(PointStarTwo, constants.ZERO_ADDRESS)).to.be.true;
+        expect(await this.azimuth.isActive(PointStarTwo)).to.be.false;
+        let response = await this.ecliptic.spawn(PointStarTwo, this.creator.address);
+        await expect(response).to.emit(this.ecliptic, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, PointStarTwo
+        );
+        expect(await this.azimuth.isOwner(PointStarTwo, this.creator.address)).to.be.true;
+        expect(await this.azimuth.canTransfer(PointStarTwo, this.creator.address)).to.be.true;
+        expect(await this.azimuth.getTransferProxy(PointStarTwo)).to.equal(constants.ZERO_ADDRESS);
+
+        // an inbound transfer of a star should fail if safe transfer is used
+        // (use the full method signature to disambiguate)
+        await expect(this.ecliptic["safeTransferFrom(address,address,uint256)"](this.creator.address, this.treasury.address, PointStarTwo)).to.be.reverted;
+
+        // however, we cannot prevent an inbound transfer that's unsafe
+        await expect(this.ecliptic.transferFrom(this.creator.address, this.treasury.address, PointStarTwo)).not.to.be.reverted;
     });
 });
