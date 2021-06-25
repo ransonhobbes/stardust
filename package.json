@@ -1,5 +1,7 @@
 {
   "name": "stardust",
+  "version": "0.1.0",
+  "description": "Simple automated market maker that wraps Urbit address space",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
