@@ -134,6 +134,16 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
+    it("allows retrieval of all assets in order", async function() {
+        expect(await this.treasury.getAssetCount()).to.equal(2);
+        const assets = await this.treasury.getAllAssets();
+        expect(assets).to.have.lengthOf(2);
+
+        // we expect these to be in the order we deposited them
+        expect(assets[0]).to.equal(PointStarZero);
+        expect(assets[1]).to.equal(PointStarOne);
+    });
+
     it("doesn't allow deposit of non-stars", async function() {
         await expect(this.treasury.deposit(PointGalaxyZero)).to.be.reverted;
         await expect(this.treasury.deposit(PointPlanetZero)).to.be.reverted;
