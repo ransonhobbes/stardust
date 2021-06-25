@@ -68,42 +68,24 @@ contract Treasury is Context {
         return assets.length;
     }
 
-//    //  mintable(): returns true if the _star can be minted
-//    function mintable(uint32 _star)
-//        public
-//        view
-//        returns (bool result)
-//    {
-//        return ( //  star must not have an owner yet
-//        //
-//        azimuth.isOwner(_star, 0x0) &&
-//        //
-//        //  this contract must be allowed to spawn for the prefix
-//        //
-//        azimuth.isSpawnProxy(prefix, this) &&
-//        //
-//        //  prefix must be linked
-//        //
-//        azimuth.hasBeenLinked(prefix) );
-//    }
-
     function deposit(uint16 _star)
         public
     {
-//        require(mintable(_star));
         require(azimuth.getPointSize(_star) == IAzimuth.Size.Star);
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
-        // case (1)
+        // case (1):
+        // star is owned by the caller, we are a transfer proxy for the star, and the star has spawned no planets
         if (
             azimuth.isOwner(_star, _msgSender()) &&
-            !azimuth.hasBeenLinked(_star) &&
+            azimuth.getSpawnCount(_star) == 0 &&
             azimuth.isTransferProxy(_star, address(this))
         ) {
             // transfer ownership of the _star to :this contract
             ecliptic.transferPoint(_star, address(this), true);
         }
-        // case (2)
+        // case (2):
+        // the star's galaxy is owned by the caller, the star is not active, and we are a spawn proxy for the galaxy
         else if (
             azimuth.isOwner(azimuth.getPrefix(_star), _msgSender()) &&
             !azimuth.isActive(_star) &&
