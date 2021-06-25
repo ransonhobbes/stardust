@@ -119,6 +119,7 @@ describe("Treasury", function() {
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
         expect(await this.azimuth.isOwner(PointStarZero, this.treasury.address)).to.be.true;
+        expect(await this.treasury.getAssetCount()).to.equal(1);
 
         // case 2
         res = await this.treasury.deposit(PointStarOne);
@@ -130,16 +131,19 @@ describe("Treasury", function() {
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar.mul(2));
         expect(await this.azimuth.isOwner(PointStarOne, this.treasury.address)).to.be.true;
+        expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
     it("doesn't allow deposit of non-stars", async function() {
         await expect(this.treasury.deposit(PointGalaxyZero)).to.be.reverted;
         await expect(this.treasury.deposit(PointPlanetZero)).to.be.reverted;
+        expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
     it("doesn't allow deposit from non-owner", async function() {
         await expect(this.treasury.connect(this.registryFunder).deposit(PointStarZero)).to.be.reverted;
         await expect(this.treasury.connect(this.registryFunder).deposit(PointStarOne)).to.be.reverted;
+        expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
     it("allows redeem from token holder", async function() {
@@ -153,11 +157,13 @@ describe("Treasury", function() {
         await expect(res2).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address
         );
+        expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 
     it("allows deposit-send-redeem pattern", async function() {
         expect(await this.azimuth.isOwner(PointStarZero, this.creator.address)).to.be.true;
         expect(await this.azimuth.getTransferProxy(PointStarZero)).to.equal(constants.ZERO_ADDRESS);
+        expect(await this.treasury.getAssetCount()).to.equal(0);
         await this.ecliptic.setTransferProxy(PointStarZero, this.treasury.address);
         let res = await this.treasury.deposit(PointStarZero);
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
@@ -167,6 +173,7 @@ describe("Treasury", function() {
             this.treasury.address, this.creator.address, this.oneStar, "0x", "0x"
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
+        expect(await this.treasury.getAssetCount()).to.equal(1);
 
         // transfer the token
         res = await this.token.send(this.operator.address, this.oneStar, "0x");
@@ -185,6 +192,7 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarZero, this.operator.address
         );
         expect(await this.token.balanceOf(this.operator.address)).to.equal(0);
+        expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 
     it("doesn't allow redeem from non-holder", async function () {

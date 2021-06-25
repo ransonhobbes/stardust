@@ -68,6 +68,8 @@ contract Treasury is Context {
         return assets.length;
     }
 
+    //  deposit(star): deposit a star you own, receive a newly-minted $STAR token in exchange
+    //
     function deposit(uint16 _star)
         public
     {
@@ -108,6 +110,8 @@ contract Treasury is Context {
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
     }
 
+    //  redeem(): burn one star token, receive ownership of the most recently deposited star in exchange
+    //
     function redeem() public {
         // must have sufficient balance
         require(startoken.balanceOf(_msgSender()) >= oneStar);
