@@ -18,7 +18,6 @@ async function main() {
     // await hre.run('compile');
 
     // Azimuth is already deployed here
-    // TODO: load this from the bridge library
     const Azimuth = await hre.ethers.getContractFactory("AzimuthWrapper");
     const azimuth = Azimuth.attach(CONTRACT_ADDRESSES.ROPSTEN.azimuth);
 
