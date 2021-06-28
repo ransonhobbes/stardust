@@ -8,6 +8,9 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/test-environment": "^0.1.9",
     "@openzeppelin/test-helpers": "^0.5.11",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^12.8.3",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.1.4",
@@ -18,11 +21,11 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
     "azimuth-solidity": "^1.2.2",
-    "openzeppelin-solidity": "^1.12.0"
-  },
-  "scripts": {
-    "compile": "npx hardhat compile",
-    "test": "npx hardhat test"
+    "openzeppelin-solidity": "^1.12.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "web-vitals": "^1.1.2"
   },
   "repository": {
     "type": "git",
@@ -32,5 +35,31 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ransonhobbes/stardust/issues"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "test-contracts": "npx hardhat test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
