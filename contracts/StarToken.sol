@@ -18,7 +18,7 @@ contract StarToken is Context, Ownable, ERC20 {
         Ownable()
         ERC20("StarToken", "STAR")
     {
-        _mint(_msgSender(), initialSupply, "", "");
+        _mint(_msgSender(), initialSupply);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
