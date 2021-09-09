@@ -22,7 +22,7 @@ contract Treasury is Context {
     //
     IAzimuth public azimuth;
 
-    // deploy a new token contract with no balance and no operators
+    // deploy a new token contract with no balance
     StarToken public startoken = new StarToken(0);
 
     uint256 constant public oneStar = 1e18;
