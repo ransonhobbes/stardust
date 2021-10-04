@@ -82,10 +82,10 @@ contract Treasury is Context {
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1):
-        // star is owned by the caller, we are a transfer proxy for the star, and the star has spawned no planets
+        // star is owned by the caller, we are a transfer proxy for the star, and the star has not been booted
         if (
             azimuth.isOwner(_star, _msgSender()) &&
-            azimuth.getSpawnCount(_star) == 0 &&
+            !azimuth.hasBeenLinked(_star) &&
             azimuth.isTransferProxy(_star, address(this))
         ) {
             // transfer ownership of the _star to :this contract
