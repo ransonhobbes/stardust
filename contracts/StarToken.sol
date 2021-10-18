@@ -17,7 +17,7 @@ contract StarToken is Context, Ownable, ERC777 {
         address[] memory defaultOperators
     )
         Ownable()
-        ERC777("StarToken", "STAR", defaultOperators)
+        ERC777("WrappedStar", "WSTR", defaultOperators)
     {
         _mint(_msgSender(), initialSupply, "", "");
     }
