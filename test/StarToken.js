@@ -45,21 +45,4 @@ describe("StarToken", function() {
         expect(await this.token.totalSupply()).to.equal(200);
         expect(await this.token.balanceOf(this.operator.address)).to.equal(100);
     });
-
-    // it("allows operator burn", async function() {
-    //     const creatorBalance = await this.token.balanceOf(this.creator.address);
-    //     const data = web3.utils.sha3('StarToken');
-    //     const operatorData = web3.utils.sha3('Simple777OperatorData');
-    //
-    //     const response = await this.token.authorizeOperator(this.operator.address);
-    //     const receipt = await response.wait();
-    //     expect(receipt.status).to.equal(1);
-    //     await expect(response).to.emit(this.token, "AuthorizedOperator").withArgs(this.operator.address, this.creator.address);
-    //     const response2 = await this.token.connect(this.operator).operatorBurn(this.creator.address, creatorBalance, data, operatorData);
-    //     const receipt2 = await response2.wait();
-    //     expect(receipt2.status).to.equal(1);
-    //     await expect(response2).to.emit(this.token, "Transfer").withArgs(this.creator.address, constants.ZERO_ADDRESS, 100);
-    //     await expect(response2).to.emit(this.token, "Burned").withArgs(this.operator.address, this.creator.address, 100, data, operatorData);
-    //     expect(await this.token.balanceOf(this.creator.address)).to.equal(0);
-    // });
 });
