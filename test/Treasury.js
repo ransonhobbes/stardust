@@ -1,6 +1,6 @@
 const {expect} = require("chai");
 const {ethers} = require("hardhat");
-const {singletons, constants} = require("@openzeppelin/test-helpers");
+const {constants} = require("@openzeppelin/test-helpers");
 
 const
     PointGalaxyZero  = 0x0,
@@ -11,11 +11,10 @@ const
 
 describe("Treasury", function() {
     before(async function () {
-        const [registryFunder, creator, operator] = await ethers.getSigners();
-        console.log(registryFunder.address, creator.address, operator.address);
-        this.registryFunder = registryFunder;
+        const [creator, operator, mallory] = await ethers.getSigners();
         this.creator = creator;
         this.operator = operator;
+        this.mallory = mallory;
 
         // initialize Azimuth and Ecliptic for testing
         const Polls = await ethers.getContractFactory("PollsWrapper", creator);
@@ -32,7 +31,6 @@ describe("Treasury", function() {
         // now deploy our contracts
         const Treasury = await ethers.getContractFactory("Treasury", creator);
         this.StarToken = await ethers.getContractFactory("StarToken", creator);
-        await singletons.ERC1820Registry(creator.address);
         this.treasury = await Treasury.deploy(this.azimuth.address);
         const tokenAddress = await this.treasury.startoken();
         this.token = this.StarToken.attach(tokenAddress);
@@ -114,8 +112,8 @@ describe("Treasury", function() {
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address
         );
-        await expect(res).to.emit(this.token, "Minted").withArgs(
-            this.treasury.address, this.creator.address, this.oneStar, "0x", "0x"
+        await expect(res).to.emit(this.token, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
         expect(await this.azimuth.isOwner(PointStarZero, this.treasury.address)).to.be.true;
@@ -126,8 +124,8 @@ describe("Treasury", function() {
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
             PointGalaxyZero, PointStarOne, this.creator.address
         );
-        await expect(res).to.emit(this.token, "Minted").withArgs(
-            this.treasury.address, this.creator.address, this.oneStar, "0x", "0x"
+        await expect(res).to.emit(this.token, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar.mul(2));
         expect(await this.azimuth.isOwner(PointStarOne, this.treasury.address)).to.be.true;
@@ -151,8 +149,9 @@ describe("Treasury", function() {
     });
 
     it("doesn't allow deposit from non-owner", async function() {
-        await expect(this.treasury.connect(this.registryFunder).deposit(PointStarZero)).to.be.reverted;
-        await expect(this.treasury.connect(this.registryFunder).deposit(PointStarOne)).to.be.reverted;
+        // mallory is not the owner
+        await expect(this.treasury.connect(this.mallory).deposit(PointStarZero)).to.be.reverted;
+        await expect(this.treasury.connect(this.mallory).deposit(PointStarOne)).to.be.reverted;
         expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
@@ -179,17 +178,14 @@ describe("Treasury", function() {
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address
         );
-        await expect(res).to.emit(this.token, "Minted").withArgs(
-            this.treasury.address, this.creator.address, this.oneStar, "0x", "0x"
+        await expect(res).to.emit(this.token, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
         expect(await this.treasury.getAssetCount()).to.equal(1);
 
         // transfer the token
-        res = await this.token.send(this.operator.address, this.oneStar, "0x");
-        await expect(res).to.emit(this.token, "Sent").withArgs(
-            this.creator.address, this.creator.address, this.operator.address, this.oneStar, "0x", "0x"
-        );
+        res = await this.token.transfer(this.operator.address, this.oneStar);
         await expect(res).to.emit(this.token, "Transfer").withArgs(
             this.creator.address, this.operator.address, this.oneStar
         );
@@ -206,10 +202,11 @@ describe("Treasury", function() {
     });
 
     it("doesn't allow redeem from non-holder", async function () {
-        await expect(this.treasury.connect(this.registryFunder).redeem()).to.be.reverted;
+        await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
     });
 
     it("doesn't allow redeem when balance is too low", async function() {
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(0);
         expect(await this.azimuth.isOwner(PointStarOne, this.creator.address)).to.be.true;
         expect(await this.azimuth.getTransferProxy(PointStarOne)).to.equal(constants.ZERO_ADDRESS);
         await this.ecliptic.setTransferProxy(PointStarOne, this.treasury.address);
@@ -217,16 +214,19 @@ describe("Treasury", function() {
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
             PointGalaxyZero, PointStarOne, this.creator.address
         );
-        await expect(res).to.emit(this.token, "Minted").withArgs(
-            this.treasury.address, this.creator.address, this.oneStar, "0x", "0x"
+        await expect(res).to.emit(this.token, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
 
         // burn one token
-        res = await this.token.burn(1, "0x");
-        await expect(res).to.emit(this.token, "Burned").withArgs(
-            this.creator.address, this.creator.address, 1, "0x", "0x"
+        // ERC20 doesn't allow arbitrary burning or transfer to the zero address, so just send
+        // the token somewhere else instead.
+        res = await this.token.transfer(this.mallory.address, 1);
+        await expect(res).to.emit(this.token, "Transfer").withArgs(
+            this.creator.address, this.mallory.address, 1
         );
+        expect(await this.token.balanceOf(this.mallory.address)).to.equal(1);
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar.sub(1));
 
         // now redeem should fail
