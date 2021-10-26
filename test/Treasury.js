@@ -12,9 +12,9 @@ const
 describe("Treasury", function() {
     before(async function () {
         const [creator, operator, mallory] = await ethers.getSigners();
-        this.mallory = mallory;
         this.creator = creator;
         this.operator = operator;
+        this.mallory = mallory;
 
         // initialize Azimuth and Ecliptic for testing
         const Polls = await ethers.getContractFactory("PollsWrapper", creator);
@@ -149,6 +149,7 @@ describe("Treasury", function() {
     });
 
     it("doesn't allow deposit from non-owner", async function() {
+        // mallory is not the owner
         await expect(this.treasury.connect(this.mallory).deposit(PointStarZero)).to.be.reverted;
         await expect(this.treasury.connect(this.mallory).deposit(PointStarOne)).to.be.reverted;
         expect(await this.treasury.getAssetCount()).to.equal(2);
