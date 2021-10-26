@@ -101,8 +101,8 @@ describe("Treasury", function() {
     });
 
     it("deploys a token contract with no initial supply", async function() {
-        expect(await this.token.name()).to.equal("StarToken");
-        expect(await this.token.symbol()).to.equal("STAR");
+        expect(await this.token.name()).to.equal("WrappedStar");
+        expect(await this.token.symbol()).to.equal("WSTR");
         expect(await this.token.totalSupply()).to.equal(0);
     });
 

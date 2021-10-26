@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
-//  StarToken: ERC20-compatible fungible star wrapper token
+//  StarToken: ERC20-compatible fungible wrapped star token
 //
 //    This contract implements a simple ERC20-compatible fungible token. It's deployed
 //    and owned by the Treasury. The Treasury mints and burns these tokens when it
@@ -16,7 +16,7 @@ contract StarToken is Context, Ownable, ERC20 {
         uint256 initialSupply
     )
         Ownable()
-        ERC20("StarToken", "STAR")
+        ERC20("WrappedStar", "WSTR")
     {
         _mint(_msgSender(), initialSupply);
     }

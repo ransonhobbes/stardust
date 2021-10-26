@@ -21,11 +21,11 @@ describe("StarToken", function() {
     });
 
     it("has a name", async function() {
-        expect(await this.token.name()).to.equal("StarToken");
+        expect(await this.token.name()).to.equal("WrappedStar");
     });
 
     it("has a symbol", async function() {
-        expect(await this.token.symbol()).to.equal("STAR");
+        expect(await this.token.symbol()).to.equal("WSTR");
     });
 
     it("assigns the initial total supply to the creator", async function() {
