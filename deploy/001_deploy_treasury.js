@@ -1,4 +1,4 @@
-module.exports = async function (hre) {
+const func = async function (hre) {
     const {deployments, getNamedAccounts} = hre;
     const {deploy} = deployments;
 
@@ -10,4 +10,5 @@ module.exports = async function (hre) {
         log: true,
     })
 };
-// func.tags = ['Token'];
+func.tags = ['Treasury'];
+module.exports = func;

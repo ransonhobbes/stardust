@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-web3");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
+const {node_url, accounts} = require("./utils/network");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -28,6 +29,12 @@ module.exports = {
     namedAccounts: {
         deployer: 0,
         azimuth: 1,
+    },
+    networks: {
+        ropsten: {
+            url: node_url('ropsten'),
+            accounts: accounts('ropsten')
+        },
     },
     solidity: {
         compilers: [
