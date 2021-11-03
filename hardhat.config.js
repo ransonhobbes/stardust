@@ -27,6 +27,7 @@ task("accountsFromWeb3", "Prints accounts", async (_, {web3}) => {
 module.exports = {
     namedAccounts: {
         deployer: 0,
+        azimuth: 1,
     },
     solidity: {
         compilers: [
