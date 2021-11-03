@@ -18,7 +18,6 @@ task("accountsFromWeb3", "Prints accounts", async (_, {web3}) => {
     console.log(await web3.eth.getAccounts());
 });
 
-
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
