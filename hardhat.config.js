@@ -1,5 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-web3");
+require("hardhat-deploy");
+require("hardhat-deploy-ethers");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -23,6 +25,9 @@ task("accountsFromWeb3", "Prints accounts", async (_, {web3}) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+    namedAccounts: {
+        deployer: 0,
+    },
     solidity: {
         compilers: [
             // for legacy code (azimuth)
