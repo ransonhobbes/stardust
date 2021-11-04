@@ -82,22 +82,19 @@ contract Treasury is Context {
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1):
-        // star is owned by the caller, we are a transfer proxy for the star, and the star has spawned no planets
+        // the caller can transfer the star, and the star has spawned no planets
         if (
-            azimuth.isOwner(_star, _msgSender()) &&
-            azimuth.getSpawnCount(_star) == 0 &&
-            azimuth.isTransferProxy(_star, address(this))
+            azimuth.canTransfer(_star, _msgSender()) &&
+            azimuth.getSpawnCount(_star) == 0
         ) {
             // transfer ownership of the _star to :this contract
             ecliptic.transferPoint(_star, address(this), true);
         }
+
         // case (2):
-        // the star's galaxy is owned by the caller, the star is not active, and we are a spawn proxy for the galaxy
-        else if (
-            azimuth.isOwner(azimuth.getPrefix(_star), _msgSender()) &&
-            !azimuth.isActive(_star) &&
-            azimuth.isSpawnProxy(azimuth.getPrefix(_star), address(this))
-        ) {
+        // the caller can spawn for the galaxy (and, implicitly, we are a spawn proxy for the galaxy, and the star
+        // is inactive)
+        else if (azimuth.canSpawnAs(azimuth.getPrefix(_star), _msgSender())) {
             // spawn the _star directly to :this contract
             ecliptic.spawn(_star, address(this));
         }
@@ -128,13 +125,12 @@ contract Treasury is Context {
         uint16 _star = assets[assets.length-1];
         assets.pop();
 
-        // check its ownership
-        require(azimuth.isOwner(_star, address(this)));
-
         // burn the tokens
         startoken.ownerBurn(_msgSender(), ONE_STAR);
 
         // transfer ownership
+        // note: Treasury should be the owner of the point and able to transfer it. this check happens inside
+        // transferPoint().
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
         ecliptic.transferPoint(_star, _msgSender(), true);
 
