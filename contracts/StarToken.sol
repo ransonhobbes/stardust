@@ -21,11 +21,11 @@ contract StarToken is Context, Ownable, ERC20 {
         _mint(_msgSender(), initialSupply);
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
+    function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
     }
 
-    function ownerBurn(address from, uint256 amount) public onlyOwner {
+    function ownerBurn(address from, uint256 amount) external onlyOwner {
         _burn(from, amount);
     }
 }

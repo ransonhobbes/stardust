@@ -75,8 +75,7 @@ contract Treasury is Context {
 
     //  deposit(star): deposit a star you own, receive a newly-minted wrapped star token in exchange
     //
-    function deposit(uint16 _star)
-        public
+    function deposit(uint16 _star) external
     {
         require(azimuth.getPointSize(_star) == IAzimuth.Size.Star);
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
@@ -117,7 +116,7 @@ contract Treasury is Context {
 
     //  redeem(): burn one star token, receive ownership of the most recently deposited star in exchange
     //
-    function redeem() public {
+    function redeem() external {
         // must have sufficient balance
         require(startoken.balanceOf(_msgSender()) >= oneStar);
 
