@@ -34,7 +34,7 @@ describe("Treasury", function() {
         this.treasury = await Treasury.deploy(this.azimuth.address);
         const tokenAddress = await this.treasury.startoken();
         this.token = this.StarToken.attach(tokenAddress);
-        this.oneStar = await this.treasury.oneStar();
+        this.ONE_STAR = await this.treasury.ONE_STAR();
 
         // register some points for testing
         expect(await this.azimuth.isOwner(PointGalaxyZero, constants.ZERO_ADDRESS)).to.be.true;
@@ -113,9 +113,9 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarZero, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
-            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
+            constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
-        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR);
         expect(await this.azimuth.isOwner(PointStarZero, this.treasury.address)).to.be.true;
         expect(await this.treasury.getAssetCount()).to.equal(1);
 
@@ -125,9 +125,9 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
-            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
+            constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
-        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar.mul(2));
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR.mul(2));
         expect(await this.azimuth.isOwner(PointStarOne, this.treasury.address)).to.be.true;
         expect(await this.treasury.getAssetCount()).to.equal(2);
     });
@@ -179,18 +179,18 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarZero, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
-            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
+            constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
-        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR);
         expect(await this.treasury.getAssetCount()).to.equal(1);
 
         // transfer the token
-        res = await this.token.transfer(this.operator.address, this.oneStar);
+        res = await this.token.transfer(this.operator.address, this.ONE_STAR);
         await expect(res).to.emit(this.token, "Transfer").withArgs(
-            this.creator.address, this.operator.address, this.oneStar
+            this.creator.address, this.operator.address, this.ONE_STAR
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(0);
-        expect(await this.token.balanceOf(this.operator.address)).to.equal(this.oneStar);
+        expect(await this.token.balanceOf(this.operator.address)).to.equal(this.ONE_STAR);
 
         // now redeem on the other side
         res = await this.treasury.connect(this.operator).redeem();
@@ -215,9 +215,9 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
-            constants.ZERO_ADDRESS, this.creator.address, this.oneStar
+            constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
-        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar);
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR);
 
         // burn one token
         // ERC20 doesn't allow arbitrary burning or transfer to the zero address, so just send
@@ -227,7 +227,7 @@ describe("Treasury", function() {
             this.creator.address, this.mallory.address, 1
         );
         expect(await this.token.balanceOf(this.mallory.address)).to.equal(1);
-        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.oneStar.sub(1));
+        expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR.sub(1));
 
         // now redeem should fail
         await expect(this.treasury.redeem()).to.be.reverted;

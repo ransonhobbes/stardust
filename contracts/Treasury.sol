@@ -25,7 +25,7 @@ contract Treasury is Context {
     // deploy a new token contract with no balance
     StarToken public startoken = new StarToken(0);
 
-    uint256 constant public oneStar = 1e18;
+    uint256 constant public ONE_STAR = 1e18;
 
     // EVENTS
 
@@ -110,7 +110,7 @@ contract Treasury is Context {
 
         //  mint star tokens and grant them to the :msg.sender
         //
-        startoken.mint(_msgSender(), oneStar);
+        startoken.mint(_msgSender(), ONE_STAR);
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
     }
 
@@ -118,7 +118,7 @@ contract Treasury is Context {
     //
     function redeem() external {
         // must have sufficient balance
-        require(startoken.balanceOf(_msgSender()) >= oneStar);
+        require(startoken.balanceOf(_msgSender()) >= ONE_STAR);
 
         // there must be at least one star in the asset list
         require(assets.length>0);
@@ -131,7 +131,7 @@ contract Treasury is Context {
         require(azimuth.isOwner(_star, address(this)));
 
         // burn the tokens
-        startoken.ownerBurn(_msgSender(), oneStar);
+        startoken.ownerBurn(_msgSender(), ONE_STAR);
 
         // transfer ownership
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
