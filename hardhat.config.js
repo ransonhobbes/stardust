@@ -2,7 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-web3");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
-const {node_url, accounts} = require("./utils/network");
+const {azimuthAddress, nodeUrl, accounts} = require("./utils/network");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -27,11 +27,16 @@ task("accountsFromWeb3", "Prints accounts", async (_, {web3}) => {
 module.exports = {
     namedAccounts: {
         deployer: 0,
-        azimuth: 1,
+        azimuth: {
+            default: 1,
+            mainnet: azimuthAddress('mainnet'),
+            rinkeby: azimuthAddress('rinkeby'),
+            ropsten: azimuthAddress('ropsten'),
+        }
     },
     networks: {
         ropsten: {
-            url: node_url('ropsten'),
+            url: nodeUrl('ropsten'),
             accounts: accounts('ropsten')
         },
     },

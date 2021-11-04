@@ -8,6 +8,7 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/test-environment": "^0.1.9",
     "@openzeppelin/test-helpers": "^0.5.11",
+    "azimuth-js": "^0.22.1",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.3.0",
@@ -19,7 +20,7 @@
     "web3": "^1.3.6"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/contracts": "^4.3.2",
     "azimuth-solidity": "^1.2.2",
     "openzeppelin-solidity": "^1.12.0"
   },

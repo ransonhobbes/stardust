@@ -1,6 +1,11 @@
 require("dotenv/config");
+const azimuthjs = require('azimuth-js');
+
 const
-    node_url = function (networkName) {
+    azimuthAddress = function (networkName) {
+        return azimuthjs.chainDetails[networkName].azimuth.address;
+    },
+    nodeUrl = function (networkName) {
         if (networkName) {
             const uri = process.env['ETH_NODE_URI_' + networkName.toUpperCase()];
             if (uri && uri !== '') {
@@ -42,4 +47,4 @@ const
     accounts = function (networkName) {
         return {mnemonic: getMnemonic(networkName)};
     };
-module.exports = {node_url, getMnemonic, accounts};
+module.exports = {azimuthAddress, nodeUrl, getMnemonic, accounts};
