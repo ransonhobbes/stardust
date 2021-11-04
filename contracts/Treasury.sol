@@ -6,10 +6,11 @@ import "./interface/IAzimuth.sol";
 import "./interface/IEcliptic.sol";
 import "./StarToken.sol";
 
-//  Treasury: simple automated market maker for StarTokens
+//  Treasury: star wrapper
 //
-//    This contract implements an extremely simple automated market maker for StarTokens.
-//    It allows owners of Azimuth star points to deposit
+//    This contract implements an extremely simple wrapper for stars.
+//    It allows owners of Azimuth star points to deposit them and mint new WSTR (wrapped star) tokens,
+//    and in turn to redeem WSTR tokens for Azimuth stars.
 
 contract Treasury is Context {
     // MODEL
@@ -109,7 +110,7 @@ contract Treasury is Context {
         //
         assets.push(_star);
 
-        //  mint star tokens and grant them to the :msg.sender
+        //  mint a star token and grant it to the :msg.sender
         //
         startoken.mint(_msgSender(), oneStar);
         emit Deposit(azimuth.getPrefix(_star), _star, _msgSender());
@@ -122,7 +123,7 @@ contract Treasury is Context {
         require(startoken.balanceOf(_msgSender()) >= oneStar);
 
         // there must be at least one star in the asset list
-        require(assets.length>0);
+        require(assets.length > 0);
 
         // remove the star to be redeemed
         uint16 _star = assets[assets.length-1];
