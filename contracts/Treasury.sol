@@ -82,7 +82,8 @@ contract Treasury is Context {
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1):
-        // the caller can transfer the star, and the star has spawned no planets
+        // the caller can transfer the star, and the star has spawned no planets (and, implicitly, the treasury is
+        // transfer proxy for the star)
         if (
             azimuth.canTransfer(_star, _msgSender()) &&
             azimuth.getSpawnCount(_star) == 0
@@ -92,8 +93,8 @@ contract Treasury is Context {
         }
 
         // case (2):
-        // the caller can spawn for the galaxy (and, implicitly, we are a spawn proxy for the galaxy, and the star
-        // is inactive)
+        // the caller can spawn for the galaxy (and, implicitly, the treasury is spawn proxy for the galaxy, and the
+        // star is inactive)
         else if (azimuth.canSpawnAs(azimuth.getPrefix(_star), _msgSender())) {
             // spawn the _star directly to :this contract
             ecliptic.spawn(_star, address(this));

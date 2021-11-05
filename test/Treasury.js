@@ -132,7 +132,7 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
-    it("allows retrieval of all assets in order", async function() {
+    it("lists assets in correct order", async function() {
         expect(await this.treasury.getAssetCount()).to.equal(2);
         const assets = await this.treasury.getAllAssets();
         expect(assets).to.have.lengthOf(2);
@@ -162,11 +162,52 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.creator.address
         );
         expect(await this.azimuth.getPrefix(PointStarOne)).to.equal(PointGalaxyZero);
-        let res2 = await this.treasury.redeem();
-        await expect(res2).to.emit(this.treasury, "Redeem").withArgs(
+        res = await this.treasury.redeem();
+        await expect(res).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address
         );
         expect(await this.treasury.getAssetCount()).to.equal(0);
+    });
+
+    it("allows deposit and redeem from authorized operator", async function() {
+        // owner authorizes mallory as operator
+        expect(await this.azimuth.isOwner(PointStarZero, this.creator.address)).to.be.true;
+        expect(await this.treasury.getAssetCount()).to.equal(0);
+        let res = await this.ecliptic.setApprovalForAll(this.mallory.address, true);
+        await expect(res).to.emit(this.ecliptic, "ApprovalForAll").withArgs(
+            this.creator.address, this.mallory.address, true
+        );
+
+        // make sure mallory has the transfer rights, as operator
+        expect(await this.azimuth.canTransfer(PointStarZero, this.mallory.address)).to.be.true;
+
+        // mallory sets the transfer proxy
+        res = await this.ecliptic.connect(this.mallory).setTransferProxy(PointStarZero, this.treasury.address);
+        await expect(res).to.emit(this.ecliptic, "Approval").withArgs(
+            // note: approval is on behalf of the owner
+            this.creator.address, this.treasury.address, PointStarZero
+        );
+        await expect(res).to.emit(this.azimuth, "ChangedTransferProxy").withArgs(
+            PointStarZero, this.treasury.address
+        );
+        expect(await this.azimuth.isTransferProxy(PointStarZero, this.treasury.address)).to.be.true;
+
+        // mallory deposits star
+        res = await this.treasury.connect(this.mallory).deposit(PointStarZero);
+        expect(await this.treasury.getAssetCount()).to.equal(1);
+        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
+            PointGalaxyZero, PointStarZero, this.mallory.address
+        );
+
+        // mallory spawns another star under the same galaxy
+        expect(await this.azimuth.getSpawnCount(PointStarOne)).to.equal(0);
+        res = await this.treasury.connect(this.mallory).deposit(PointStarOne);
+        expect(await this.treasury.getAssetCount()).to.equal(2);
+        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
+            PointGalaxyZero, PointStarOne, this.mallory.address
+        );
+
+        // mallory redeems both stars
     });
 
     it("allows deposit-send-redeem pattern", async function() {
