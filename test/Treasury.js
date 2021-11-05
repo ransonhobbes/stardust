@@ -7,6 +7,8 @@ const
     PointStarZero    = 0x00000100, // 256, first star of galaxy zero
     PointStarOne     = 0x00000200, // 512, second star of galaxy zero
     PointStarTwo     = 0x00000300, // 768, third star of galaxy zero
+    PointStarThree   = 0x00000400, // 1024, fourth star of galaxy zero
+    PointStarFour    = 0x00000500, // 1280, fifth star of galaxy zero
     PointPlanetZero  = 0x00010100; // 65792, first planet of first star of galaxy zero
 
 describe("Treasury", function() {
@@ -169,47 +171,6 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 
-    it("allows deposit and redeem from authorized operator", async function() {
-        // owner authorizes mallory as operator
-        expect(await this.azimuth.isOwner(PointStarZero, this.creator.address)).to.be.true;
-        expect(await this.treasury.getAssetCount()).to.equal(0);
-        let res = await this.ecliptic.setApprovalForAll(this.mallory.address, true);
-        await expect(res).to.emit(this.ecliptic, "ApprovalForAll").withArgs(
-            this.creator.address, this.mallory.address, true
-        );
-
-        // make sure mallory has the transfer rights, as operator
-        expect(await this.azimuth.canTransfer(PointStarZero, this.mallory.address)).to.be.true;
-
-        // mallory sets the transfer proxy
-        res = await this.ecliptic.connect(this.mallory).setTransferProxy(PointStarZero, this.treasury.address);
-        await expect(res).to.emit(this.ecliptic, "Approval").withArgs(
-            // note: approval is on behalf of the owner
-            this.creator.address, this.treasury.address, PointStarZero
-        );
-        await expect(res).to.emit(this.azimuth, "ChangedTransferProxy").withArgs(
-            PointStarZero, this.treasury.address
-        );
-        expect(await this.azimuth.isTransferProxy(PointStarZero, this.treasury.address)).to.be.true;
-
-        // mallory deposits star
-        res = await this.treasury.connect(this.mallory).deposit(PointStarZero);
-        expect(await this.treasury.getAssetCount()).to.equal(1);
-        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
-            PointGalaxyZero, PointStarZero, this.mallory.address
-        );
-
-        // mallory spawns another star under the same galaxy
-        expect(await this.azimuth.getSpawnCount(PointStarOne)).to.equal(0);
-        res = await this.treasury.connect(this.mallory).deposit(PointStarOne);
-        expect(await this.treasury.getAssetCount()).to.equal(2);
-        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
-            PointGalaxyZero, PointStarOne, this.mallory.address
-        );
-
-        // mallory redeems both stars
-    });
-
     it("allows deposit-send-redeem pattern", async function() {
         expect(await this.azimuth.isOwner(PointStarZero, this.creator.address)).to.be.true;
         expect(await this.azimuth.getTransferProxy(PointStarZero)).to.equal(constants.ZERO_ADDRESS);
@@ -242,18 +203,72 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 
+    it("allows deposit and redeem from authorized operator", async function() {
+        // owner authorizes mallory as operator
+        expect(await this.azimuth.isOwner(PointStarOne, this.creator.address)).to.be.true;
+        expect(await this.treasury.getAssetCount()).to.equal(0);
+        let res = await this.ecliptic.setApprovalForAll(this.mallory.address, true);
+        await expect(res).to.emit(this.ecliptic, "ApprovalForAll").withArgs(
+            this.creator.address, this.mallory.address, true
+        );
+
+        // make sure mallory has the transfer rights, as operator
+        expect(await this.azimuth.canTransfer(PointStarOne, this.mallory.address)).to.be.true;
+
+        // mallory sets the transfer proxy
+        res = await this.ecliptic.connect(this.mallory).setTransferProxy(PointStarOne, this.treasury.address);
+        await expect(res).to.emit(this.ecliptic, "Approval").withArgs(
+            // note: approval is on behalf of the owner
+            this.creator.address, this.treasury.address, PointStarOne
+        );
+        await expect(res).to.emit(this.azimuth, "ChangedTransferProxy").withArgs(
+            PointStarOne, this.treasury.address
+        );
+        expect(await this.azimuth.isTransferProxy(PointStarOne, this.treasury.address)).to.be.true;
+
+        // test case 1: mallory deposits star
+        res = await this.treasury.connect(this.mallory).deposit(PointStarOne);
+        expect(await this.treasury.getAssetCount()).to.equal(1);
+        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
+            PointGalaxyZero, PointStarOne, this.mallory.address
+        );
+
+        // test case 2: mallory spawns another unowned star under the same galaxy
+        // expect(await this.azimuth.getSpawnCount(PointStarThree)).to.equal(0);
+        // expect(await this.azimuth.isOwner(PointStarThree, constants.ZERO_ADDRESS)).to.be.true;
+        // expect(await this.azimuth.isActive(PointStarThree)).to.be.false;
+        // res = await this.treasury.connect(this.mallory).deposit(PointStarThree);
+        // expect(await this.treasury.getAssetCount()).to.equal(2);
+        // await expect(res).to.emit(this.treasury, "Deposit").withArgs(
+        //     PointGalaxyZero, PointStarThree, this.mallory.address
+        // );
+
+        // mallory redeems both stars
+        res = await this.treasury.connect(this.mallory).redeem();
+        await expect(res).to.emit(this.treasury, "Redeem").withArgs(
+            PointGalaxyZero, PointStarOne, this.mallory.address
+        );
+        expect(await this.treasury.getAssetCount()).to.equal(0);
+    });
+
     it("doesn't allow redeem from non-holder", async function () {
         await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
     });
 
     it("doesn't allow redeem when balance is too low", async function() {
+        expect(await this.azimuth.isOwner(PointStarFour, constants.ZERO_ADDRESS)).to.be.true;
+        expect(await this.azimuth.isActive(PointStarFour)).to.be.false;
+        let res = await this.ecliptic.spawn(PointStarFour, this.creator.address);
+        await expect(res).to.emit(this.ecliptic, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, PointStarFour
+        );
+        expect(await this.azimuth.isOwner(PointStarFour, this.creator.address)).to.be.true;
         expect(await this.token.balanceOf(this.creator.address)).to.equal(0);
-        expect(await this.azimuth.isOwner(PointStarOne, this.creator.address)).to.be.true;
-        expect(await this.azimuth.getTransferProxy(PointStarOne)).to.equal(constants.ZERO_ADDRESS);
-        await this.ecliptic.setTransferProxy(PointStarOne, this.treasury.address);
-        let res = await this.treasury.deposit(PointStarOne);
+        expect(await this.azimuth.getTransferProxy(PointStarFour)).to.equal(constants.ZERO_ADDRESS);
+        await this.ecliptic.setTransferProxy(PointStarFour, this.treasury.address);
+        res = await this.treasury.deposit(PointStarFour);
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
-            PointGalaxyZero, PointStarOne, this.creator.address
+            PointGalaxyZero, PointStarFour, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
             constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
