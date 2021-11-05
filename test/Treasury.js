@@ -233,6 +233,13 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.mallory.address
         );
 
+        // test case 2: mallory tries to spawn another unowned star under the same galaxy
+        // this should fail since we do not allow operator spawn
+        expect(await this.azimuth.getSpawnCount(PointStarThree)).to.equal(0);
+        expect(await this.azimuth.isOwner(PointStarThree, constants.ZERO_ADDRESS)).to.be.true;
+        expect(await this.azimuth.isActive(PointStarThree)).to.be.false;
+        await expect(this.treasury.connect(this.mallory).deposit(PointStarThree)).to.be.reverted;
+
         // mallory redeems the star
         res = await this.treasury.connect(this.mallory).redeem();
         await expect(res).to.emit(this.treasury, "Redeem").withArgs(
