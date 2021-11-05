@@ -233,29 +233,16 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.mallory.address
         );
 
-        // test case 2: mallory spawns another unowned star under the same galaxy
-        // expect(await this.azimuth.getSpawnCount(PointStarThree)).to.equal(0);
-        // expect(await this.azimuth.isOwner(PointStarThree, constants.ZERO_ADDRESS)).to.be.true;
-        // expect(await this.azimuth.isActive(PointStarThree)).to.be.false;
-        // res = await this.treasury.connect(this.mallory).deposit(PointStarThree);
-        // expect(await this.treasury.getAssetCount()).to.equal(2);
-        // await expect(res).to.emit(this.treasury, "Deposit").withArgs(
-        //     PointGalaxyZero, PointStarThree, this.mallory.address
-        // );
-
-        // mallory redeems both stars
+        // mallory redeems the star
         res = await this.treasury.connect(this.mallory).redeem();
         await expect(res).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarOne, this.mallory.address
         );
         expect(await this.treasury.getAssetCount()).to.equal(0);
+        expect(await this.azimuth.isOwner(PointStarOne, this.mallory.address)).to.be.true;
     });
 
-    it("doesn't allow redeem from non-holder", async function () {
-        await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
-    });
-
-    it("doesn't allow redeem when balance is too low", async function() {
+    it("doesn't allow redeem from non-holder or when balance is too low", async function() {
         expect(await this.azimuth.isOwner(PointStarFour, constants.ZERO_ADDRESS)).to.be.true;
         expect(await this.azimuth.isActive(PointStarFour)).to.be.false;
         let res = await this.ecliptic.spawn(PointStarFour, this.creator.address);
@@ -274,6 +261,9 @@ describe("Treasury", function() {
             constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR);
+
+        // try redeeming from a non token holder
+        await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
 
         // burn one token
         // ERC20 doesn't allow arbitrary burning or transfer to the zero address, so just send

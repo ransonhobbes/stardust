@@ -84,6 +84,8 @@ contract Treasury is Context {
         // case (1):
         // the caller can transfer the star, and the star has spawned no planets (and, implicitly, the treasury is
         // transfer proxy for the star)
+        // note: we check canTransfer() here, rather than isOwner(), because the owner can authorize a third-party
+        // operator to transfer.
         if (
             azimuth.canTransfer(_star, _msgSender()) &&
             azimuth.getSpawnCount(_star) == 0
@@ -93,8 +95,10 @@ contract Treasury is Context {
         }
 
         // case (2):
-        // the caller can spawn for the galaxy (and, implicitly, the treasury is spawn proxy for the galaxy, and the
+        // the caller owns the galaxy (and, implicitly, the treasury is spawn proxy for the galaxy, and the
         // star is inactive)
+        // note: we check canSpawnAs() here but, unlike transfer (see case 1), spawning does not allow an operator,
+        // so in practice only the owner can call this.
         else if (azimuth.canSpawnAs(azimuth.getPrefix(_star), _msgSender())) {
             // spawn the _star directly to :this contract
             ecliptic.spawn(_star, address(this));
