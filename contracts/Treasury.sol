@@ -16,7 +16,9 @@ contract Treasury is Context {
     // MODEL
 
     //  assets: stars currently held in this pool
-    //  note: stars are 16 bit numbers
+    //  note: stars are 16 bit numbers and we always handle them as uint16.
+    //  some azimuth and ecliptic calls (below) expect uint32 points. in these cases, solidity upcasts the uint16 to
+    //  uint32, which is a safe operation.
     //
     uint16[] public assets;
 
