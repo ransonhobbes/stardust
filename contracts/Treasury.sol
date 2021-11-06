@@ -16,6 +16,9 @@ contract Treasury is Context {
     // MODEL
 
     //  assets: stars currently held in this pool
+    //  note: stars are 16 bit numbers and we always handle them as uint16.
+    //  some azimuth and ecliptic calls (below) expect uint32 points. in these cases, solidity upcasts the uint16 to
+    //  uint32, which is a safe operation.
     //
     uint16[] public assets;
 
@@ -31,14 +34,14 @@ contract Treasury is Context {
     // EVENTS
 
     event Deposit(
-        uint32 indexed prefix,
-        uint32 indexed star,
+        uint16 indexed prefix,
+        uint16 indexed star,
         address sender
     );
 
     event Redeem(
-        uint32 indexed prefix,
-        uint32 indexed star,
+        uint16 indexed prefix,
+        uint16 indexed star,
         address sender
     );
 
@@ -87,10 +90,12 @@ contract Treasury is Context {
         // note: we check canTransfer() here, rather than isOwner(), because the owner can authorize a third-party
         // operator to transfer.
         if (
+            // note: _star is uint16, azimuth expects a uint32 point
             azimuth.canTransfer(_star, _msgSender()) &&
             azimuth.getSpawnCount(_star) == 0
         ) {
             // transfer ownership of the _star to :this contract
+            // note: _star is uint16, ecliptic expects a uint32 point
             ecliptic.transferPoint(_star, address(this), true);
         }
 
@@ -99,8 +104,10 @@ contract Treasury is Context {
         // star is inactive)
         // note: we check canSpawnAs() here but, unlike transfer (see case 1), spawning does not allow an operator,
         // so in practice only the owner can call this.
+        // note: getPrefix returns uint16, azimuth expects a uint32 point
         else if (azimuth.canSpawnAs(azimuth.getPrefix(_star), _msgSender())) {
             // spawn the _star directly to :this contract
+            // note: _star is uint16, ecliptic expects a uint32 point
             ecliptic.spawn(_star, address(this));
         }
         else {
@@ -137,6 +144,7 @@ contract Treasury is Context {
         // note: Treasury should be the owner of the point and able to transfer it. this check happens inside
         // transferPoint().
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
+        // note: _star is uint16, ecliptic expects a uint32 point
         ecliptic.transferPoint(_star, _msgSender(), true);
 
         emit Redeem(azimuth.getPrefix(_star), _star, _msgSender());
