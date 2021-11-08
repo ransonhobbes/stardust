@@ -81,7 +81,7 @@ contract Treasury is Context {
     //
     function deposit(uint16 _star) external
     {
-        require(azimuth.getPointSize(_star) == IAzimuth.Size.Star);
+        require(azimuth.getPointSize(_star) == IAzimuth.Size.Star, "Treasury: must be a star");
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1):
@@ -128,10 +128,10 @@ contract Treasury is Context {
     //
     function redeem() external returns (uint16) {
         // must have sufficient balance
-        require(startoken.balanceOf(_msgSender()) >= ONE_STAR);
+        require(startoken.balanceOf(_msgSender()) >= ONE_STAR, "Treasury: Not enough balance");
 
         // there must be at least one star in the asset list
-        require(assets.length > 0);
+        require(assets.length > 0, "Treasury: no star available to redeem");
 
         // remove the star to be redeemed
         uint16 _star = assets[assets.length-1];
