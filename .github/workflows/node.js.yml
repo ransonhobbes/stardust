@@ -12,6 +12,8 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x]
+        # node 16.x doesn't work, see https://github.com/ransonhobbes/stardust/issues/12
+
     steps:
     - uses: actions/checkout@v2
       with:
