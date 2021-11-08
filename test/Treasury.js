@@ -159,11 +159,18 @@ describe("Treasury", function() {
 
     it("allows redeem from token holder", async function() {
         // stars come out in FILO order, i.e., there is a stack
+
+        // first, perform a static call to check the return value
+        expect(await this.treasury.callStatic.redeem()).to.equal(PointStarOne);
+
+        // now actually redeem it
         let res = await this.treasury.redeem();
         await expect(res).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarOne, this.creator.address
         );
         expect(await this.azimuth.getPrefix(PointStarOne)).to.equal(PointGalaxyZero);
+
+        expect(await this.treasury.callStatic.redeem()).to.equal(PointStarZero);
         res = await this.treasury.redeem();
         await expect(res).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address

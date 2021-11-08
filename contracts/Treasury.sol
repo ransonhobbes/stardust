@@ -126,7 +126,7 @@ contract Treasury is Context {
 
     //  redeem(): burn one star token, receive ownership of the most recently deposited star in exchange
     //
-    function redeem() external {
+    function redeem() external returns (uint16) {
         // must have sufficient balance
         require(startoken.balanceOf(_msgSender()) >= ONE_STAR);
 
@@ -148,5 +148,6 @@ contract Treasury is Context {
         ecliptic.transferPoint(_star, _msgSender(), true);
 
         emit Redeem(azimuth.getPrefix(_star), _star, _msgSender());
+        return _star;
     }
 }
