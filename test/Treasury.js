@@ -7,6 +7,8 @@ const
     PointStarZero    = 0x00000100, // 256, first star of galaxy zero
     PointStarOne     = 0x00000200, // 512, second star of galaxy zero
     PointStarTwo     = 0x00000300, // 768, third star of galaxy zero
+    PointStarThree   = 0x00000400, // 1024, fourth star of galaxy zero
+    PointStarFour    = 0x00000500, // 1280, fifth star of galaxy zero
     PointPlanetZero  = 0x00010100; // 65792, first planet of first star of galaxy zero
 
 describe("Treasury", function() {
@@ -132,7 +134,7 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(2);
     });
 
-    it("allows retrieval of all assets in order", async function() {
+    it("lists assets in correct order", async function() {
         expect(await this.treasury.getAssetCount()).to.equal(2);
         const assets = await this.treasury.getAllAssets();
         expect(assets).to.have.lengthOf(2);
@@ -162,8 +164,8 @@ describe("Treasury", function() {
             PointGalaxyZero, PointStarOne, this.creator.address
         );
         expect(await this.azimuth.getPrefix(PointStarOne)).to.equal(PointGalaxyZero);
-        let res2 = await this.treasury.redeem();
-        await expect(res2).to.emit(this.treasury, "Redeem").withArgs(
+        res = await this.treasury.redeem();
+        await expect(res).to.emit(this.treasury, "Redeem").withArgs(
             PointGalaxyZero, PointStarZero, this.creator.address
         );
         expect(await this.treasury.getAssetCount()).to.equal(0);
@@ -201,23 +203,74 @@ describe("Treasury", function() {
         expect(await this.treasury.getAssetCount()).to.equal(0);
     });
 
-    it("doesn't allow redeem from non-holder", async function () {
-        await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
+    it("allows deposit and redeem from authorized operator", async function() {
+        // owner authorizes mallory as operator
+        expect(await this.azimuth.isOwner(PointStarOne, this.creator.address)).to.be.true;
+        expect(await this.treasury.getAssetCount()).to.equal(0);
+        let res = await this.ecliptic.setApprovalForAll(this.mallory.address, true);
+        await expect(res).to.emit(this.ecliptic, "ApprovalForAll").withArgs(
+            this.creator.address, this.mallory.address, true
+        );
+
+        // make sure mallory has the transfer rights, as operator
+        expect(await this.azimuth.canTransfer(PointStarOne, this.mallory.address)).to.be.true;
+
+        // mallory sets the transfer proxy
+        res = await this.ecliptic.connect(this.mallory).setTransferProxy(PointStarOne, this.treasury.address);
+        await expect(res).to.emit(this.ecliptic, "Approval").withArgs(
+            // note: approval is on behalf of the owner
+            this.creator.address, this.treasury.address, PointStarOne
+        );
+        await expect(res).to.emit(this.azimuth, "ChangedTransferProxy").withArgs(
+            PointStarOne, this.treasury.address
+        );
+        expect(await this.azimuth.isTransferProxy(PointStarOne, this.treasury.address)).to.be.true;
+
+        // test case 1: mallory deposits star
+        res = await this.treasury.connect(this.mallory).deposit(PointStarOne);
+        expect(await this.treasury.getAssetCount()).to.equal(1);
+        await expect(res).to.emit(this.treasury, "Deposit").withArgs(
+            PointGalaxyZero, PointStarOne, this.mallory.address
+        );
+
+        // test case 2: mallory tries to spawn another unowned star under the same galaxy
+        // this should fail since we do not allow operator spawn
+        expect(await this.azimuth.getSpawnCount(PointStarThree)).to.equal(0);
+        expect(await this.azimuth.isOwner(PointStarThree, constants.ZERO_ADDRESS)).to.be.true;
+        expect(await this.azimuth.isActive(PointStarThree)).to.be.false;
+        await expect(this.treasury.connect(this.mallory).deposit(PointStarThree)).to.be.reverted;
+
+        // mallory redeems the star
+        res = await this.treasury.connect(this.mallory).redeem();
+        await expect(res).to.emit(this.treasury, "Redeem").withArgs(
+            PointGalaxyZero, PointStarOne, this.mallory.address
+        );
+        expect(await this.treasury.getAssetCount()).to.equal(0);
+        expect(await this.azimuth.isOwner(PointStarOne, this.mallory.address)).to.be.true;
     });
 
-    it("doesn't allow redeem when balance is too low", async function() {
+    it("doesn't allow redeem from non-holder or when balance is too low", async function() {
+        expect(await this.azimuth.isOwner(PointStarFour, constants.ZERO_ADDRESS)).to.be.true;
+        expect(await this.azimuth.isActive(PointStarFour)).to.be.false;
+        let res = await this.ecliptic.spawn(PointStarFour, this.creator.address);
+        await expect(res).to.emit(this.ecliptic, "Transfer").withArgs(
+            constants.ZERO_ADDRESS, this.creator.address, PointStarFour
+        );
+        expect(await this.azimuth.isOwner(PointStarFour, this.creator.address)).to.be.true;
         expect(await this.token.balanceOf(this.creator.address)).to.equal(0);
-        expect(await this.azimuth.isOwner(PointStarOne, this.creator.address)).to.be.true;
-        expect(await this.azimuth.getTransferProxy(PointStarOne)).to.equal(constants.ZERO_ADDRESS);
-        await this.ecliptic.setTransferProxy(PointStarOne, this.treasury.address);
-        let res = await this.treasury.deposit(PointStarOne);
+        expect(await this.azimuth.getTransferProxy(PointStarFour)).to.equal(constants.ZERO_ADDRESS);
+        await this.ecliptic.setTransferProxy(PointStarFour, this.treasury.address);
+        res = await this.treasury.deposit(PointStarFour);
         await expect(res).to.emit(this.treasury, "Deposit").withArgs(
-            PointGalaxyZero, PointStarOne, this.creator.address
+            PointGalaxyZero, PointStarFour, this.creator.address
         );
         await expect(res).to.emit(this.token, "Transfer").withArgs(
             constants.ZERO_ADDRESS, this.creator.address, this.ONE_STAR
         );
         expect(await this.token.balanceOf(this.creator.address)).to.equal(this.ONE_STAR);
+
+        // try redeeming from a non token holder
+        await expect(this.treasury.connect(this.mallory).redeem()).to.be.reverted;
 
         // burn one token
         // ERC20 doesn't allow arbitrary burning or transfer to the zero address, so just send
