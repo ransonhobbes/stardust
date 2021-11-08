@@ -85,27 +85,27 @@ contract Treasury is Context {
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
 
         // case (1):
-        // star is owned by the caller, we are a transfer proxy for the star, and the star has spawned no planets
+        // the caller can transfer the star, and the star has spawned no planets (and, implicitly, the treasury is
+        // transfer proxy for the star)
+        // note: we check canTransfer() here, rather than isOwner(), because the owner can authorize a third-party
+        // operator to transfer.
         if (
             // note: _star is uint16, azimuth expects a uint32 point
-            azimuth.isOwner(_star, _msgSender()) &&
-            azimuth.getSpawnCount(_star) == 0 &&
-            azimuth.isTransferProxy(_star, address(this))
+            azimuth.canTransfer(_star, _msgSender()) &&
+            azimuth.getSpawnCount(_star) == 0
         ) {
             // transfer ownership of the _star to :this contract
             // note: _star is uint16, ecliptic expects a uint32 point
             ecliptic.transferPoint(_star, address(this), true);
         }
+
         // case (2):
-        // the star's galaxy is owned by the caller, the star is not active, and we are a spawn proxy for the galaxy
-        else if (
-            // note: getPrefix returns uint16, azimuth expects a uint32 point
-            azimuth.isOwner(azimuth.getPrefix(_star), _msgSender()) &&
-            // note: _star is uint16, azimuth expects a uint32 point
-            !azimuth.isActive(_star) &&
-            // note: getPrefix returns uint16, azimuth expects a uint32 point
-            azimuth.isSpawnProxy(azimuth.getPrefix(_star), address(this))
-        ) {
+        // the caller owns the galaxy (and, implicitly, the treasury is spawn proxy for the galaxy, and the
+        // star is inactive)
+        // note: we check canSpawnAs() here but, unlike transfer (see case 1), spawning does not allow an operator,
+        // so in practice only the owner can call this.
+        // note: getPrefix returns uint16, azimuth expects a uint32 point
+        else if (azimuth.canSpawnAs(azimuth.getPrefix(_star), _msgSender())) {
             // spawn the _star directly to :this contract
             // note: _star is uint16, ecliptic expects a uint32 point
             ecliptic.spawn(_star, address(this));
@@ -137,14 +137,12 @@ contract Treasury is Context {
         uint16 _star = assets[assets.length-1];
         assets.pop();
 
-        // check its ownership
-        // note: _star is uint16, azimuth expects a uint32 point
-        require(azimuth.isOwner(_star, address(this)));
-
         // burn the tokens
         startoken.ownerBurn(_msgSender(), ONE_STAR);
 
         // transfer ownership
+        // note: Treasury should be the owner of the point and able to transfer it. this check happens inside
+        // transferPoint().
         IEcliptic ecliptic = IEcliptic(azimuth.owner());
         // note: _star is uint16, ecliptic expects a uint32 point
         ecliptic.transferPoint(_star, _msgSender(), true);
