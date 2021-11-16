@@ -12,14 +12,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 //    processes deposits and withdrawals.
 
 contract StarToken is Context, Ownable, ERC20 {
-    constructor(
-        uint256 initialSupply
-    )
-        Ownable()
-        ERC20("WrappedStar", "WSTR")
-    {
-        _mint(_msgSender(), initialSupply);
-    }
+    constructor() Ownable() ERC20("WrappedStar", "WSTR") {}
 
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
