@@ -33,6 +33,13 @@ contract TreasuryProxy is ERC1967Proxy {
         _upgradeTo(_impl);
         return true;
     }
+
+    function upgradeToAndCall(address _impl, bytes calldata data, bool forceCall)
+        external ifEcliptic notFrozen returns (bool)
+    {
+        _upgradeToAndCall(_impl, data, forceCall);
+        return true;
+    }
     
     function freeze() external ifEcliptic notFrozen returns (bool) {
         _frozen().value = true;
