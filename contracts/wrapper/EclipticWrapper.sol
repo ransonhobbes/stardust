@@ -17,4 +17,8 @@ contract EclipticWrapper is Ecliptic {
     function upgradeTreasury(ITreasuryProxy _proxy, address _impl) {
         _proxy.upgradeTo(_impl);
     }
+
+    function freezeTreasury(ITreasuryProxy _proxy) {
+        _proxy.freeze();
+    }
 }

@@ -7,6 +7,8 @@ import "./interface/IAzimuth.sol";
 contract TreasuryProxy is ERC1967Proxy {
     IAzimuth immutable azimuth;
 
+    bytes32 constant frozenSlot = bytes32(uint256(keccak256("TreasuryProxy.frozen")) - 1);
+
     constructor(IAzimuth _azimuth, address _impl) ERC1967Proxy(_impl, "") {
         azimuth = _azimuth;
     }
@@ -16,8 +18,19 @@ contract TreasuryProxy is ERC1967Proxy {
         _;
     }
 
+    function frozen() internal pure returns (StorageSlot.BooleanSlot storage) {
+        return StorageSlot.getBooleanSlot(frozenSlot);
+    }
+
     function upgradeTo(address _impl) external ifEcliptic returns (bool) {
+        require(!frozen().value, "upgradeTo: contract frozen");
         _upgradeTo(_impl);
+        return true;
+    }
+    
+    function freeze() external ifEcliptic returns (bool) {
+        StorageSlot.BooleanSlot storage _frozen = frozen();
+        _frozen.value = true;
         return true;
     }
 }

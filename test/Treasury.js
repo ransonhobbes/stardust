@@ -102,6 +102,16 @@ describe("Treasury", function() {
         await this.ecliptic.upgradeTreasury(this.treasury.address, treasuryImpl.address);
     })
 
+    it("can be frozen", async function() {
+        await this.ecliptic.freezeTreasury(this.treasury.address)
+    })
+
+    it("cannot be upgraded after freezing", async function() {
+        const treasuryImpl = await this.Treasury.deploy(this.azimuth.address, this.token.address);
+        await expect(this.ecliptic.upgradeTreasury(this.treasury.address, treasuryImpl.address))
+            .revertedWith("upgradeTo: contract frozen");
+    })
+
     it("has no assets when deployed", async function() {
         expect(await this.treasury.getAssetCount()).to.equal(0);
     });
