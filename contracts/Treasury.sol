@@ -24,10 +24,10 @@ contract Treasury is Context {
 
     //  azimuth: points state data store
     //
-    IAzimuth public azimuth;
+    IAzimuth public immutable azimuth;
 
     // deploy a new token contract with no balance
-    StarToken public startoken = new StarToken(0);
+    StarToken public immutable startoken;
 
     uint256 constant public ONE_STAR = 1e18;
 
@@ -49,9 +49,10 @@ contract Treasury is Context {
 
     //  constructor(): configure the points data store and token contract address
     //
-    constructor(IAzimuth _azimuth)
+    constructor(IAzimuth _azimuth, StarToken _startoken)
     {
         azimuth = _azimuth;
+        startoken = _startoken;
     }
 
     //  getAllAssets(): return array of assets held by this contract

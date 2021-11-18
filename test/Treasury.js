@@ -31,11 +31,14 @@ describe("Treasury", function() {
         await this.polls.transferOwnership(this.ecliptic.address);
 
         // now deploy our contracts
-        const Treasury = await ethers.getContractFactory("Treasury", creator);
+        this.Treasury = await ethers.getContractFactory("Treasury", creator);
         this.StarToken = await ethers.getContractFactory("StarToken", creator);
-        this.treasury = await Treasury.deploy(this.azimuth.address);
-        const tokenAddress = await this.treasury.startoken();
-        this.token = this.StarToken.attach(tokenAddress);
+        const TreasuryProxy = await ethers.getContractFactory("TreasuryProxy", creator);
+        this.token = await this.StarToken.deploy();
+        const treasuryImpl = await this.Treasury.deploy(this.azimuth.address, this.token.address);
+        this.treasuryProxy = await TreasuryProxy.deploy(this.azimuth.address, treasuryImpl.address)
+        this.treasury = this.Treasury.attach(this.treasuryProxy.address)
+        this.token.transferOwnership(this.treasury.address)
         this.ONE_STAR = await this.treasury.ONE_STAR();
 
         // register some points for testing
@@ -93,6 +96,30 @@ describe("Treasury", function() {
         expect(await this.azimuth.isActive(PointStarOne)).to.be.false;
         expect(await this.azimuth.isSpawnProxy(PointGalaxyZero, this.treasury.address)).to.be.true;
     });
+
+    it("can be upgraded", async function () {
+        const treasuryImpl = await this.Treasury.deploy(this.azimuth.address, this.token.address);
+        await this.ecliptic.upgradeTreasury(this.treasury.address, treasuryImpl.address);
+    })
+
+    it("cannot be upgraded by not Ecliptic", async function () {
+        const treasuryImpl = await this.Treasury.deploy(this.azimuth.address, this.token.address);
+        await expect(this.treasuryProxy.upgradeTo(treasuryImpl.address)).revertedWith("TreasuryProxy: Only Ecliptic");
+    })
+
+    it("cannot be frozen by not Ecliptic", async function () {
+        await expect(this.treasuryProxy.freeze()).revertedWith("TreasuryProxy: Only Ecliptic");
+    })
+
+    it("can be frozen", async function() {
+        await this.ecliptic.freezeTreasury(this.treasury.address)
+    })
+
+    it("cannot be upgraded after freezing", async function() {
+        const treasuryImpl = await this.Treasury.deploy(this.azimuth.address, this.token.address);
+        await expect(this.ecliptic.upgradeTreasury(this.treasury.address, treasuryImpl.address))
+            .revertedWith("TreasuryProxy: Contract frozen");
+    })
 
     it("has no assets when deployed", async function() {
         expect(await this.treasury.getAssetCount()).to.equal(0);
