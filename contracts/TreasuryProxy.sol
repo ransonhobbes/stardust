@@ -7,29 +7,36 @@ import "./interface/IAzimuth.sol";
 contract TreasuryProxy is ERC1967Proxy {
     IAzimuth immutable azimuth;
 
-    bytes32 constant frozenSlot = bytes32(uint256(keccak256("TreasuryProxy.frozen")) - 1);
+    bytes32 constant FROZEN_SLOT = bytes32(uint256(keccak256("TreasuryProxy.frozen")) - 1);
+
+    event Froze(address frozenImplementation);
 
     constructor(IAzimuth _azimuth, address _impl) ERC1967Proxy(_impl, "") {
         azimuth = _azimuth;
     }
 
     modifier ifEcliptic() {
-        require(msg.sender == azimuth.owner(), "Only Ecliptic");
+        require(msg.sender == azimuth.owner(), "TreasuryProxy: Only Ecliptic");
         _;
     }
 
-    function frozen() internal pure returns (StorageSlot.BooleanSlot storage) {
-        return StorageSlot.getBooleanSlot(frozenSlot);
+    function _frozen() internal pure returns (StorageSlot.BooleanSlot storage) {
+        return StorageSlot.getBooleanSlot(FROZEN_SLOT);
     }
 
-    function upgradeTo(address _impl) external ifEcliptic returns (bool) {
-        require(!frozen().value, "upgradeTo: contract frozen");
+    modifier notFrozen() {
+        require(!_frozen().value, "TreasuryProxy: Contract frozen");
+        _;
+    }
+
+    function upgradeTo(address _impl) external ifEcliptic notFrozen returns (bool) {
         _upgradeTo(_impl);
         return true;
     }
     
-    function freeze() external ifEcliptic returns (bool) {
-        frozen().value = true;
+    function freeze() external ifEcliptic notFrozen returns (bool) {
+        _frozen().value = true;
+        emit Froze(_implementation());
         return true;
     }
 }
