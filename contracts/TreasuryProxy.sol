@@ -29,8 +29,7 @@ contract TreasuryProxy is ERC1967Proxy {
     }
     
     function freeze() external ifEcliptic returns (bool) {
-        StorageSlot.BooleanSlot storage _frozen = frozen();
-        _frozen.value = true;
+        frozen().value = true;
         return true;
     }
 }
